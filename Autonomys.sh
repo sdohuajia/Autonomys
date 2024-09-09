@@ -41,14 +41,14 @@ After=network.target
 [Service]
 User=root
 Group=root
-ExecStart=/root/.local/bin/subspace-node \
-          run \ 
-          --name subspace \
-          --base-path /root/.local/share/subspace-node \
-          --chain gemini-3h \
-          --farmer \
-          --listen-on /ip4/0.0.0.0/tcp/30333 \
-          --dsn-listen-on /ip4/0.0.0.0/tcp/30433           
+ExecStart=/root/.local/bin/subspace-node \\
+          run \\
+          --name subspace \\
+          --base-path /root/.local/share/subspace-node \\
+          --chain gemini-3h \\
+          --farmer \\
+          --listen-on /ip4/0.0.0.0/tcp/30333 \\
+          --dsn-listen-on /ip4/0.0.0.0/tcp/30433
 KillSignal=SIGINT
 Restart=always
 RestartSec=10
@@ -74,13 +74,13 @@ Wants=subspace-node.service
 After=subspace-node.service
 
 [Service]
-User=subspace
-Group=subspace
+User=root
+Group=root
 ExecStart=/root/.local/bin/subspace-farmer \\
           farm \\
           --reward-address $REWARD_ADDRESS \\
           --listen-on /ip4/0.0.0.0/tcp/30533 \\
-          path=/root/.local/share/subspace-farmer,size=100G           
+          path=/root/.local/share/subspace-farmer,size=100G
 KillSignal=SIGINT
 Restart=always
 RestartSec=10
