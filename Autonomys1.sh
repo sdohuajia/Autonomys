@@ -1,5 +1,23 @@
 #!/bin/bash
 
+# 脚本保存路径
+SCRIPT_PATH="$HOME/Autonomys1.sh"
+
+# 检查是否以root用户运行脚本
+if [ "$(id -u)" != "0" ]; then
+    echo "此脚本需要以root用户权限运行。"
+    echo "请尝试使用 'sudo -i' 命令切换到root用户，然后再次运行此脚本。"
+    exit 1
+fi
+
+# 查看奖励函数
+function check_rewards() {
+    echo "查看奖励数量:"
+    REWARDS_COUNT=$(sudo journalctl -o cat -u subspace-farmer --since="1 hour ago" | grep -i "Successfully signed reward hash" | wc -l)
+    echo "过去一小时内成功签署的奖励数量: $REWARDS_COUNT"
+    read -p "按 Enter 键返回主菜单..."
+}
+
 # 主菜单函数
 function main_menu() {
     while true; do
@@ -11,9 +29,10 @@ function main_menu() {
         echo "请选择要执行的操作:"
         echo "1. 启动节点"
         echo "2. 查看日志"
-        echo "3. 退出脚本"
+        echo "3. 查看奖励"
+        echo "4. 退出脚本"
 
-        read -p "请输入选项 [1-3]: " option
+        read -p "请输入选项 [1-4]: " option
 
         case $option in
             1)
@@ -120,11 +139,14 @@ EOF
                 cd ..
                 ;;
             3)
+                check_rewards
+                ;;
+            4)
                 echo "退出脚本..."
                 exit 0
                 ;;
             *)
-                echo "无效选项，请输入 1、2 或 3。"
+                echo "无效选项，请输入 1、2、3 或 4。"
                 ;;
         esac
     done
