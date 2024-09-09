@@ -39,15 +39,15 @@ Wants=network.target
 After=network.target
 
 [Service]
-User=subspace
-Group=subspace
-ExecStart=/root/.local/bin/subspace-node \\
-          run \\
-          --name subspace \\
-          --base-path /root/.local/share/subspace-node \\
-          --chain gemini-3h \\
-          --farmer \\
-          --listen-on /ip4/0.0.0.0/tcp/30333 \\
+User=root
+Group=root
+ExecStart=/root/.local/bin/subspace-node \
+          run \ 
+          --name subspace \
+          --base-path /root/.local/share/subspace-node \
+          --chain gemini-3h \
+          --farmer \
+          --listen-on /ip4/0.0.0.0/tcp/30333 \
           --dsn-listen-on /ip4/0.0.0.0/tcp/30433           
 KillSignal=SIGINT
 Restart=always
