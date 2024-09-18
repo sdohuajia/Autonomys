@@ -18,6 +18,20 @@ function check_rewards() {
     read -p "按 Enter 键返回主菜单..."
 }
 
+# 停止并删除节点服务
+function stop_and_delete_node() {
+    if [ -d "subspace" ]; then
+        cd subspace
+        echo "正在停止并删除节点服务..."
+        docker compose down
+        cd ..
+        echo "节点服务已停止并删除。"
+    else
+        echo "未找到 subspace 目录。请先启动节点。"
+    fi
+    read -p "按 Enter 键返回主菜单..."
+}
+
 # 主菜单函数
 function main_menu() {
     while true; do
@@ -30,9 +44,10 @@ function main_menu() {
         echo "1. 启动节点"
         echo "2. 查看日志"
         echo "3. 查看奖励"
-        echo "4. 退出脚本"
+        echo "4. 删除并停止节点"
+        echo "5. 退出脚本"
 
-        read -p "请输入选项 [1-4]: " option
+        read -p "请输入选项 [1-5]: " option
 
         case $option in
             1)
@@ -60,7 +75,7 @@ function main_menu() {
 version: '3'
 services:
   node:
-    image: ghcr.io/autonomys/node:gemini-3h-2024-sep-17
+    image: ghcr.io/autonomys/node:latest
     volumes:
       - node-data:/var/subspace:rw
     ports:
@@ -89,7 +104,7 @@ services:
     depends_on:
       node:
         condition: service_healthy
-    image: ghcr.io/autonomys/farmer:gemini-3h-2024-sep-17
+    image: ghcr.io/autonomys/farmer:latest
     volumes:
       - farmer-data:/var/subspace:rw
     ports:
@@ -142,11 +157,14 @@ EOF
                 check_rewards
                 ;;
             4)
+                stop_and_delete_node
+                ;;
+            5)
                 echo "退出脚本..."
                 exit 0
                 ;;
             *)
-                echo "无效选项，请输入 1、2、3 或 4。"
+                echo "无效选项，请输入 1、2、3、4 或 5。"
                 ;;
         esac
     done
