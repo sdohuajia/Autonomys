@@ -104,7 +104,7 @@ services:
     depends_on:
       node:
         condition: service_healthy
-    image: ghcr.io/autonomys/farmer:latest
+    image: ghcr.io/autonomys/farmer:gemini-3h-2024-sep-17
     volumes:
       - farmer-data:/var/subspace:rw
     ports:
