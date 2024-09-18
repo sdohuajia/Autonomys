@@ -60,7 +60,7 @@ function main_menu() {
 version: '3'
 services:
   node:
-    image: ghcr.io/autonomys/node:gemini-3h-2024-sep-03
+    image: ghcr.io/autonomys/node:gemini-3h-2024-sep-17
     volumes:
       - node-data:/var/subspace:rw
     ports:
@@ -89,7 +89,7 @@ services:
     depends_on:
       node:
         condition: service_healthy
-    image: ghcr.io/autonomys/farmer:gemini-3h-2024-sep-03
+    image: ghcr.io/autonomys/farmer:gemini-3h-2024-sep-17
     volumes:
       - farmer-data:/var/subspace:rw
     ports:
