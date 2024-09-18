@@ -75,7 +75,7 @@ function main_menu() {
 version: '3'
 services:
   node:
-    image: ghcr.io/autonomys/node:latest
+    image: ghcr.io/autonomys/node:gemini-3h-2024-sep-17
     volumes:
       - node-data:/var/subspace:rw
     ports:
