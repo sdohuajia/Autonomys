@@ -10,6 +10,37 @@ if [ "$(id -u)" != "0" ]; then
     exit 1
 fi
 
+# 检查 Docker 是否已安装
+if command -v docker &> /dev/null; then
+    echo "Docker 已安装。"
+else
+    echo "Docker 未安装，正在进行安装..."
+
+    # 更新软件包列表
+    apt-get update
+
+    # 安装必要的软件包以允许 apt 使用存储库通过 HTTPS
+    apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+
+    # 添加 Docker 官方 GPG 密钥
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+
+    # 添加 Docker 存储库
+    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+
+    # 更新软件包列表
+    apt-get update
+
+    # 安装 Docker
+    apt-get install -y docker-ce
+
+    # 启动并启用 Docker 服务
+    systemctl start docker
+    systemctl enable docker
+
+    echo "Docker 安装完成。"
+fi
+
 # 查看奖励函数
 function check_rewards() {
     echo "查看奖励数量:"
@@ -32,46 +63,43 @@ function stop_and_delete_node() {
     read -p "按 Enter 键返回主菜单..."
 }
 
-# 主菜单函数
-function main_menu() {
-    while true; do
-        clear
-        echo "脚本由大赌社区哈哈哈哈编写，推特 @ferdie_jhovie，免费开源，请勿相信收费"
-        echo "如有问题，可联系推特，仅此只有一个号"
-        echo "================================================================"
-        echo "退出脚本，请按键盘 ctrl + C 退出即可"
-        echo "请选择要执行的操作:"
-        echo "1. 启动节点"
-        echo "2. 查看日志"
-        echo "3. 查看奖励"
-        echo "4. 删除并停止节点"
-        echo "5. 退出脚本"
+# 查看日志函数
+function view_logs() {
+    # 检查是否在 subspace 目录中
+    if [ -d "subspace" ]; then
+        cd subspace
+        echo "显示最新的 1000 行日志（持续更新）:"
+        docker compose logs --tail=1000 -f
+        # 返回主菜单
+        cd ..
+    else
+        echo "未找到 subspace 目录。请先启动节点。"
+    fi
+}
 
-        read -p "请输入选项 [1-5]: " option
+# 设置 Docker Compose 的安装和配置
+function setup_docker_compose() {
+    # 检查 Docker Compose 是否安装
+    if ! command -v docker-compose &> /dev/null; then
+        echo "Docker Compose 未安装，正在安装 Docker Compose..."
+        # 安装 Docker Compose
+        DOCKER_COMPOSE_VERSION="2.20.2"
+        sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        chmod +x /usr/local/bin/docker-compose
+    else
+        echo "Docker Compose 已安装。"
+    fi
 
-        case $option in
-            1)
-                # 检查 Docker Compose 是否安装
-                if ! command -v docker-compose &> /dev/null; then
-                    echo "Docker Compose 未安装，正在安装 Docker Compose..."
-                    # 安装 Docker Compose
-                    DOCKER_COMPOSE_VERSION="2.20.2"
-                    sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-                    chmod +x /usr/local/bin/docker-compose
-                else
-                    echo "Docker Compose 已安装。"
-                fi
+    # 输出 Docker Compose 版本
+    echo "Docker Compose 版本:"
+    docker-compose --version
 
-                # 输出 Docker Compose 版本
-                echo "Docker Compose 版本:"
-                docker-compose --version
+    # 提示用户输入 reward-address 和 name
+    read -p "请输入 reward-address: " REWARD_ADDRESS
+    read -p "请输入 name: " NAME
 
-                # 提示用户输入 reward-address 和 name
-                read -p "请输入 reward-address: " REWARD_ADDRESS
-                read -p "请输入 name: " NAME
-
-                # 创建 docker-compose.yaml 文件
-                cat <<EOF > docker-compose.yaml
+    # 创建 docker-compose.yaml 文件
+    cat <<EOF > docker-compose.yaml
 version: '3'
 services:
   node:
@@ -123,35 +151,48 @@ volumes:
   farmer-data:
 EOF
 
-                # 提示用户按任意键继续
-                read -n 1 -s -r -p "docker-compose.yaml 文件已创建。按任意键继续..."
+    # 提示用户按任意键继续
+    read -n 1 -s -r -p "docker-compose.yaml 文件已创建。按任意键继续..."
 
-                # 创建 subspace 目录
-                mkdir -p subspace
+    # 创建 subspace 目录
+    mkdir -p subspace
 
-                # 移动 docker-compose.yaml 文件到 subspace 目录
-                mv docker-compose.yaml subspace/
+    # 移动 docker-compose.yaml 文件到 subspace 目录
+    mv docker-compose.yaml subspace/
 
-                # 进入 subspace 目录并执行 docker compose up -d
-                cd subspace
-                docker compose up -d
+    # 进入 subspace 目录并执行 docker compose up -d
+    cd subspace
+    docker compose up -d
 
-                echo "服务已启动。"
+    echo "服务已启动。"
 
-                # 返回主菜单
-                cd ..
+    # 返回主菜单
+    cd ..
+}
+
+# 主菜单函数
+function main_menu() {
+    while true; do
+        clear
+        echo "脚本由大赌社区哈哈哈哈编写，推特 @ferdie_jhovie，免费开源，请勿相信收费"
+        echo "如有问题，可联系推特，仅此只有一个号"
+        echo "================================================================"
+        echo "退出脚本，请按键盘 ctrl + C 退出即可"
+        echo "请选择要执行的操作:"
+        echo "1. 启动节点"
+        echo "2. 查看日志"
+        echo "3. 查看奖励"
+        echo "4. 删除并停止节点"
+        echo "5. 退出脚本"
+
+        read -p "请输入选项 [1-5]: " option
+
+        case $option in
+            1)
+                setup_docker_compose
                 ;;
             2)
-                # 检查是否在 subspace 目录中
-                if [ -d "subspace" ]; then
-                    cd subspace
-                    echo "显示最新的 1000 行日志（持续更新）:"
-                    docker compose logs --tail=1000 -f
-                else
-                    echo "未找到 subspace 目录。请先启动节点。"
-                fi
-                # 返回主菜单
-                cd ..
+                view_logs
                 ;;
             3)
                 check_rewards
