@@ -103,7 +103,7 @@ function setup_docker_compose() {
 version: '3'
 services:
   node:
-    image: ghcr.io/autonomys/node:gemini-3h-2024-sep-17
+    image: ghcr.io/autonomys/node:gemini-3h-2024-oct-10
     volumes:
       - node-data:/var/subspace:rw
     ports:
